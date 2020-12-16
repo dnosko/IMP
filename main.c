@@ -1,14 +1,8 @@
-//       An example for demonstrating basic principles of FITkit3 usage.
-//
-// It includes GPIO - inputs from button press/release, outputs for LED control,
-// timer in output compare mode for generating periodic events (via interrupt 
-// service routine) and speaker handling (via alternating log. 0/1 through
-// GPIO output on a reasonable frequency). Using this as a basis for IMP projects
-// as well as for testing basic FITkit3 operation is strongly recommended.
-//
-//            (c) 2019 Michal Bidlo, BUT FIT, bidlom@fit.vutbr.cz
-////////////////////////////////////////////////////////////////////////////
-/* Header file with all the essential definitions for a given type of MCU */
+/*
+ * 		Daša Noskova - xnosko05
+ *  		IMP - 2020/2021
+ *
+ *********************************************/
 #include "MK60D10.h"
 #include "alfabet.h"
 #include <stdio.h>
@@ -48,6 +42,7 @@
 int pressed_up = 0, pressed_down = 0;
 unsigned int compare = 0x200;
 int count_cols = 0;
+int offset = 0;
 
 /* Variable delay loop */
 void delay(long long bound)
@@ -192,23 +187,109 @@ void printChar(int text, int i) {
 
 	switch(text){
 	case 'A':
+	case 'a':
 		matrix = A;
-		//memcpy(matrix, A, 6*8*sizeof(int));
 		break;
 	case 'B':
+	case 'b':
 		matrix = B;
-		//memcpy(matrix, B, 6*8*sizeof(int));
 		break;
 	case 'C':
-		//memcpy(matrix, C, 8*6*sizeof(int));
+	case 'c':
+		matrix = C;
 		break;
 	case 'D':
-		//memcpy(matrix, D, 8*6*sizeof(int));
+	case 'd':
+		matrix = D;
+		break;
+	case 'E':
+	case 'e':
+		matrix = E;
+		break;
+	case 'F':
+	case 'f':
+		matrix = F;
+		break;
+	case 'G':
+	case 'g':
+		matrix = G;
+		break;
+	case 'H':
+	case 'h':
+		matrix = H;
+		break;
+	case 'I':
+	case 'i':
+		matrix = I;
+		break;
+	case 'J':
+	case 'j':
+		matrix = J;
+		break;
+	case 'K':
+	case 'k':
+		matrix = K;
+		break;
+	case 'L':
+	case 'l':
+		matrix = L;
+		break;
+	case 'M':
+	case 'm':
+		matrix = M;
+		break;
+	case 'N':
+	case 'n':
+		matrix = N;
+		break;
+	case 'O':
+	case 'o':
+		matrix = O;
+		break;
+	case 'P':
+	case 'p':
+		matrix = P;
+		break;
+	case 'Q':
+	case 'q':
+		matrix = Q;
+		break;
+	case 'R':
+	case 'r':
+		matrix = R;
+		break;
+	case 'S':
+	case 's':
+		matrix = S;
+		break;
+	case 'T':
+	case 't':
+		matrix = T;
+		break;
+	case 'U':
+	case 'u':
+		matrix = U;
+		break;
+	case 'V':
+	case 'v':
+		matrix = V;
+		break;
+	case 'W':
+	case 'w':
+		matrix = W;
 		break;
 	case 'X':
-		//memcpy(matrix, X, 8*6*sizeof(int));
+	case 'x':
+		matrix = X;
 		break;
-
+	case 'Y':
+	case 'y':
+		//matrix = Y;
+		break;
+	case 'Z':
+	case 'z':
+		//matrix = Z;
+		break;
 	}
 
 	//int max_col = 6 - count_cols;
@@ -224,26 +305,19 @@ void print_text(char* text){
 	int actual = 0;
 	int next = 0;
 	for (int i = 0; i < 15;i++){
-		if (actual < 6){
-			actual++;
-			printChar(text[0],i);
-		}
-		else {
-			next++;
-			printChar(text[0],i);
-		}
+		printChar(text[0],i);
 	}
 }
 
 
 void LPTMR0_IRQHandler(void)
 {
-	LPTMR0_CMR = compare / 100;
+	/*LPTMR0_CMR = compare / 100;
 	LPTMR0_CSR |=  LPTMR_CSR_TCF_MASK;
-	count_cols++;
-	//printChar('B');
+	offset++;
+	print_text("XNO");
 	if (count_cols == 6)
-		count_cols = 0;
+		count_cols = 0;*/
 
 }
 
@@ -267,10 +341,11 @@ int main(void)
     MCUInit();
     PortsInit();
     //LPTMR0Init(compare);
+    //TODO INIT PIT casovac
 
     while (1) {
         //nul_rows();
-    	print_text("AB");
+    	print_text("ABC");
         //printChar('A',0);
     }
 
