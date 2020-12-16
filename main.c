@@ -106,10 +106,10 @@ void PortsInit(void)
 void setColumn(int index){
 	switch(index) {
 	case 0:
-		//PTA->PDOR &= ~A0;
-		//PTA->PDOR &= ~A1;
-		//PTA->PDOR ^= A2;
-		//PTA->PDOR ^= A3;
+		PTA->PDOR &= ~A0;
+		PTA->PDOR &= ~A1;
+		PTA->PDOR &= ~A2;
+		PTA->PDOR &= ~A3;
 		break;
 	}
 }
