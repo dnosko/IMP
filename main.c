@@ -12,6 +12,7 @@
 #include "MK60D10.h"
 #include "alfabet.h"
 #include <stdio.h>
+#include <string.h>
 
 /* Macros for bit-level registers manipulation */
 #define GPIO_PIN_MASK 0x1Fu
@@ -45,19 +46,17 @@
 
 
 int pressed_up = 0, pressed_down = 0;
-
-/* Constants specifying delay loop duration */
-#define	tdelay1			10000
-#define tdelay2 		100
+unsigned int compare = 0x200;
+int count_cols = 0;
 
 /* Variable delay loop */
-void delay(int t1, int t2)
+void delay(long long bound)
 {
-	int i, j;
+	int c, d;
 
-	for(i=0; i<t1; i++) {
-		for(j=0; j<t2; j++);
-	}
+	   for (c = 1; c <= bound; c++)
+	       for (d = 1; d <= bound; d++)
+	       {}
 }
 
 
@@ -71,7 +70,7 @@ void MCUInit(void)  {
 void PortsInit(void)
 {
     /* Turn on all port clocks */
-    SIM->SCGC5 = SIM_SCGC5_PORTB_MASK | SIM_SCGC5_PORTE_MASK | SIM_SCGC5_PORTA_MASK;
+    SIM->SCGC5 = SIM_SCGC5_PORTE_MASK | SIM_SCGC5_PORTA_MASK;
 
     /* Set corresponding PTA pins */
 
@@ -88,6 +87,8 @@ void PortsInit(void)
     PORTA->PCR[28] |= PORT_PCR_MUX(0x01);
     PORTA->PCR[25] |= PORT_PCR_MUX(0x01);
 
+    NVIC_ClearPendingIRQ(PORTA_IRQn);      /* Vynuluj priznak prerusenia od portu A  */
+    NVIC_EnableIRQ(PORTA_IRQn);        /* Povol prerusenie od portu A          */
 
     /* Set port E*/
     PORTE->PCR[28] = PORT_PCR_MUX(0x01);
@@ -104,10 +105,7 @@ void PortsInit(void)
     PTA->PDDR = GPIO_PDDR_PDD(0x3F000FC0);     // LED ports as outputs
     PTA->PDOR |= GPIO_PDOR_PDO(0x3F000FC0);    // turn all LEDs OFF
 
-    //NVIC_ClearPendingIRQ(PORTA_IRQn);      /* Vynuluj priznak prerusenia od portu A  */
-    //NVIC_EnableIRQ(PORTA_IRQn);        /* Povol prerusenie od portu A          */
 
-    //PTE->PDOR =
 }
 
 /* Conversion of requested column number into the 4-to-16 decoder control.  */
@@ -160,67 +158,93 @@ void nul_rows(){
 	PTA->PDOR &= ~R7;
 }
 
+void nul_all(){
+	for(int i = 0; i < 4; i++){
+		nul_rows();
+		column_select(i);
+	}
+}
 
-void led_rows(int *matrix){
+void led_rows(int bit){
 
-
-	if (matrix[0])
+	if (0 != (bit & 128))
 		PTA->PDOR |= R0;
-	if (matrix[1])
+	if (0 != (bit & 64))
 		PTA->PDOR |= R1;
-	if (matrix[2])
+	if (0 != (bit & 32))
 		PTA->PDOR |= R2;
-	if (matrix[3])
+	if (0 != (bit & 16))
 		PTA->PDOR |= R3;
-	if (matrix[4])
+	if (0 != (bit & 8))
 		PTA->PDOR |= R4;
-	if (matrix[5])
+	if (0 != (bit & 4))
 		PTA->PDOR |= R5;
-
+	if (0 != (bit & 2))
+		PTA->PDOR |= R6;
+	if (0 != (bit & 1))
+		PTA->PDOR |= R7;
 
 }
 
 
-void printChar(int text) {
-	int matrix[8][6];
+void printChar(int text, int i) {
+	int* matrix;
 
 	switch(text){
 	case 'A':
-		memcpy(matrix, A, 8*6*sizeof(int));
+		matrix = A;
+		//memcpy(matrix, A, 6*8*sizeof(int));
 		break;
 	case 'B':
-		memcpy(matrix, B, 8*6*sizeof(int));
+		matrix = B;
+		//memcpy(matrix, B, 6*8*sizeof(int));
 		break;
 	case 'C':
-		memcpy(matrix, C, 8*6*sizeof(int));
+		//memcpy(matrix, C, 8*6*sizeof(int));
 		break;
 	case 'D':
-		memcpy(matrix, D, 8*6*sizeof(int));
+		//memcpy(matrix, D, 8*6*sizeof(int));
 		break;
 	case 'X':
-		memcpy(matrix, X, 8*6*sizeof(int));
+		//memcpy(matrix, X, 8*6*sizeof(int));
 		break;
 
 	}
 
-	for (int i = 0; i < 8-1; i++){
-		nul_rows();
-		column_select(i);
-		led_rows(matrix[i+1]);
+	//int max_col = 6 - count_cols;
+
+	//for (int i = 0; i < max_col; i++){
+	nul_rows();
+	column_select(i);
+	led_rows(matrix[i]);
+
+}
+
+void print_text(char* text){
+	int actual = 0;
+	int next = 0;
+	for (int i = 0; i < 15;i++){
+		if (actual < 6){
+			actual++;
+			printChar(text[0],i);
+		}
+		else {
+			next++;
+			printChar(text[0],i);
+		}
 	}
 }
 
 
 void LPTMR0_IRQHandler(void)
 {
-    // Set new compare value set by up/down buttons
-    /*LPTMR0_CMR = compare;                // !! the CMR reg. may only be changed while TCF == 1
-    LPTMR0_CSR |=  LPTMR_CSR_TCF_MASK;   // writing 1 to TCF tclear the flag
-    GPIOA_PDOR ^= R0;                // invert D9 state
-    //GPIOB_PDOR ^= A;               // invert D10 state
-    //GPIOB_PDOR ^= LED_D11;               // invert D11 state
-    //GPIOB_PDOR ^= LED_D12;               // invert D12 state
-    beep_flag = !beep_flag;              // see beep_flag test in main()*/
+	LPTMR0_CMR = compare / 100;
+	LPTMR0_CSR |=  LPTMR_CSR_TCF_MASK;
+	count_cols++;
+	//printChar('B');
+	if (count_cols == 6)
+		count_cols = 0;
+
 }
 
 void LPTMR0Init(int count)
@@ -242,15 +266,12 @@ int main(void)
 {
     MCUInit();
     PortsInit();
-    //delay(tdelay1, tdelay2);
     //LPTMR0Init(compare);
 
     while (1) {
-    	//LPTMR0_IRQHandler;
-        printChar('B');
         //nul_rows();
-        //delay(tdelay1, tdelay2);
-        //printChar('B');
+    	print_text("AB");
+        //printChar('A',0);
     }
 
     return 0;
