@@ -94,11 +94,11 @@ void PortsInit(void)
 	*/
 
     /* Change corresponding PTB port pins as outputs */
-    PTA->PDDR = GPIO_PDDR_PDD(0xD2);     // LED ports as outputs
-    PTA->PDOR |= GPIO_PDOR_PDO(0xD2);    // turn all LEDs OFF
+    PTA->PDDR = GPIO_PDDR_PDD(0x3F000FC0);     // LED ports as outputs
+    PTA->PDOR |= GPIO_PDOR_PDO(0x3F000FC0);    // turn all LEDs OFF
 
-    NVIC_ClearPendingIRQ(PORTA_IRQn);      /* Vynuluj priznak prerusenia od portu A  */
-    NVIC_EnableIRQ(PORTA_IRQn);        /* Povol prerusenie od portu A          */
+    //NVIC_ClearPendingIRQ(PORTA_IRQn);      /* Vynuluj priznak prerusenia od portu A  */
+    //NVIC_EnableIRQ(PORTA_IRQn);        /* Povol prerusenie od portu A          */
 
     //PTE->PDOR =
 }
@@ -106,10 +106,10 @@ void PortsInit(void)
 void setColumn(int index){
 	switch(index) {
 	case 0:
-		PTA->PDOR &= ~A0;
-		PTA->PDOR &= ~A1;
-		PTA->PDOR &= ~A2;
-		PTA->PDOR &= ~A3;
+		//PTA->PDOR &= ~A0;
+		//PTA->PDOR &= ~A1;
+		//PTA->PDOR ^= A2;
+		//PTA->PDOR ^= A3;
 		break;
 	}
 }
@@ -119,7 +119,8 @@ void printText(int text) {
 	case 'x':
 		//setColumn(0);
 		//PTA->PDOR |= R2;
-		PTA->PDOR |= R1;
+		//PTA->PDOR |= R1;
+		//PTA->PDOR |= R3;
 		setColumn(0);
 		break;
 
