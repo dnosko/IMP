@@ -11,6 +11,7 @@
 /* Header file with all the essential definitions for a given type of MCU */
 #include "MK60D10.h"
 #include "alfabet.h"
+#include <stdio.h>
 
 /* Macros for bit-level registers manipulation */
 #define GPIO_PIN_MASK 0x1Fu
@@ -175,19 +176,19 @@ void led_rows(int *matrix){
 
 
 void printText(int text) {
+	int matrix[8][6];
+
 	switch(text){
 	case 'X':
-		nul_rows();
-		column_select(0);
-		led_rows(X[0]);
-		nul_rows();
-		column_select(1);
-		led_rows(X[1]);
-		nul_rows();
-		column_select(2);
-		led_rows(X[2]);
+		memcpy(matrix, X, 8*6*sizeof(int));
 		break;
 
+	}
+
+	for (int i = 0; i < 8; i++){
+		nul_rows();
+		column_select(i);
+		led_rows(matrix[i]);
 	}
 }
 
