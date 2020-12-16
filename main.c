@@ -10,7 +10,7 @@
 ////////////////////////////////////////////////////////////////////////////
 /* Header file with all the essential definitions for a given type of MCU */
 #include "MK60D10.h"
-#include "alfabet.c"
+#include "alfabet.h"
 
 /* Macros for bit-level registers manipulation */
 #define GPIO_PIN_MASK 0x1Fu
@@ -46,6 +46,7 @@
 int pressed_up = 0, pressed_down = 0;
 int beep_flag = 0;
 unsigned int compare = 0x200;
+char matrix[8][6];
 
 /* A delay function */
 void delay(long long bound) {
@@ -103,37 +104,90 @@ void PortsInit(void)
     //PTE->PDOR =
 }
 
-void setColumn(int index){
-	switch(index) {
-	case 0:
-		PTA->PDOR &= ~A0;
-		PTA->PDOR &= ~A1;
-		PTA->PDOR &= ~A2;
-		PTA->PDOR &= ~A3;
-		break;
-	case 1:
-		PTA->PDOR |= A0;
-		PTA->PDOR &= ~A1;
-		PTA->PDOR &= ~A2;
-		PTA->PDOR &= ~A3;
-		break;
-	case 2:
-		PTA->PDOR &= ~A0;
-		PTA->PDOR |= A1;
-		PTA->PDOR &= ~A2;
-		PTA->PDOR &= ~A3;
-		break;
+/* Conversion of requested column number into the 4-to-16 decoder control.  */
+void column_select(unsigned int col_num)
+{
+	unsigned i, result, col_sel[4];
+
+	for (i =0; i<4; i++) {
+		result = col_num / 2;	  // Whole-number division of the input number
+		col_sel[i] = col_num % 2;
+		col_num = result;
+
+		switch(i) {
+
+			// Selection signal A0
+		    case 0:
+				((col_sel[i]) == 0) ? (PTA->PDOR &= ~GPIO_PDOR_PDO( GPIO_PIN(8))) : (PTA->PDOR |= GPIO_PDOR_PDO( GPIO_PIN(8)));
+				break;
+
+			// Selection signal A1
+			case 1:
+				((col_sel[i]) == 0) ? (PTA->PDOR &= ~GPIO_PDOR_PDO( GPIO_PIN(10))) : (PTA->PDOR |= GPIO_PDOR_PDO( GPIO_PIN(10)));
+				break;
+
+			// Selection signal A2
+			case 2:
+				((col_sel[i]) == 0) ? (PTA->PDOR &= ~GPIO_PDOR_PDO( GPIO_PIN(6))) : (PTA->PDOR |= GPIO_PDOR_PDO( GPIO_PIN(6)));
+				break;
+
+			// Selection signal A3
+			case 3:
+				((col_sel[i]) == 0) ? (PTA->PDOR &= ~GPIO_PDOR_PDO( GPIO_PIN(11))) : (PTA->PDOR |= GPIO_PDOR_PDO( GPIO_PIN(11)));
+				break;
+
+			// Otherwise nothing to do...
+			default:
+				break;
+		}
 	}
 }
 
+void nul_rows(){
+	PTA->PDOR &= ~R0;
+	PTA->PDOR &= ~R1;
+	PTA->PDOR &= ~R2;
+	PTA->PDOR &= ~R3;
+	PTA->PDOR &= ~R4;
+	PTA->PDOR &= ~R5;
+	PTA->PDOR &= ~R6;
+	PTA->PDOR &= ~R7;
+}
+
+
+void led_rows(int *matrix){
+
+
+	if (matrix[col][0])
+		PTA->PDOR |= R0;
+	if (matrix[col][1])
+		PTA->PDOR |= R1;
+	if (matrix[col][2])
+		PTA->PDOR |= R2;
+	if (matrix[col][3])
+		PTA->PDOR |= R3;
+	if (matrix[col][4])
+		PTA->PDOR |= R4;
+	if (matrix[col][5])
+		PTA->PDOR |= R5;
+
+
+}
+
+void fill_matrix()
+
 void printText(int text) {
 	switch(text){
-	case 'x':
-		//setColumn(0);
-		//PTA->PDOR |= R2;
-		//PTA->PDOR |= R1;
-		//PTA->PDOR |= R3;
-		setColumn(2);
+	case 'X':
+		nul_rows();
+		column_select(0);
+		led_rows(0, X[8][6]);
+		nul_rows();
+		column_select(1);
+		led_rows(1,X);
+		nul_rows();
+		column_select(2);
+		led_rows(2,X);
 		break;
 
 	}
@@ -174,7 +228,7 @@ int main(void)
 
     while (1) {
     	//LPTMR0_IRQHandler;
-        printText('x');
+        printText('X');
     }
 
     return 0;
