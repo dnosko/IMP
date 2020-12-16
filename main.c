@@ -46,7 +46,6 @@
 int pressed_up = 0, pressed_down = 0;
 int beep_flag = 0;
 unsigned int compare = 0x200;
-char matrix[8][6];
 
 /* A delay function */
 void delay(long long bound) {
@@ -158,36 +157,35 @@ void nul_rows(){
 void led_rows(int *matrix){
 
 
-	if (matrix[col][0])
+	if (matrix[0])
 		PTA->PDOR |= R0;
-	if (matrix[col][1])
+	if (matrix[1])
 		PTA->PDOR |= R1;
-	if (matrix[col][2])
+	if (matrix[2])
 		PTA->PDOR |= R2;
-	if (matrix[col][3])
+	if (matrix[3])
 		PTA->PDOR |= R3;
-	if (matrix[col][4])
+	if (matrix[4])
 		PTA->PDOR |= R4;
-	if (matrix[col][5])
+	if (matrix[5])
 		PTA->PDOR |= R5;
 
 
 }
 
-void fill_matrix()
 
 void printText(int text) {
 	switch(text){
 	case 'X':
 		nul_rows();
 		column_select(0);
-		led_rows(0, X[8][6]);
+		led_rows(X[0]);
 		nul_rows();
 		column_select(1);
-		led_rows(1,X);
+		led_rows(X[1]);
 		nul_rows();
 		column_select(2);
-		led_rows(2,X);
+		led_rows(X[2]);
 		break;
 
 	}
