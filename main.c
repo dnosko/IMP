@@ -45,15 +45,21 @@
 
 
 int pressed_up = 0, pressed_down = 0;
-int beep_flag = 0;
-unsigned int compare = 0x200;
 
-/* A delay function */
-void delay(long long bound) {
+/* Constants specifying delay loop duration */
+#define	tdelay1			10000
+#define tdelay2 		100
 
-  long long i;
-  for(i=0;i<bound;i++);
+/* Variable delay loop */
+void delay(int t1, int t2)
+{
+	int i, j;
+
+	for(i=0; i<t1; i++) {
+		for(j=0; j<t2; j++);
+	}
 }
+
 
 /* Initialize the MCU - basic clock settings, turning the watchdog off */
 void MCUInit(void)  {
@@ -175,22 +181,35 @@ void led_rows(int *matrix){
 }
 
 
-void printText(int text) {
+void printChar(int text) {
 	int matrix[8][6];
 
 	switch(text){
+	case 'A':
+		memcpy(matrix, A, 8*6*sizeof(int));
+		break;
+	case 'B':
+		memcpy(matrix, B, 8*6*sizeof(int));
+		break;
+	case 'C':
+		memcpy(matrix, C, 8*6*sizeof(int));
+		break;
+	case 'D':
+		memcpy(matrix, D, 8*6*sizeof(int));
+		break;
 	case 'X':
 		memcpy(matrix, X, 8*6*sizeof(int));
 		break;
 
 	}
 
-	for (int i = 0; i < 8; i++){
+	for (int i = 0; i < 8-1; i++){
 		nul_rows();
 		column_select(i);
-		led_rows(matrix[i]);
+		led_rows(matrix[i+1]);
 	}
 }
+
 
 void LPTMR0_IRQHandler(void)
 {
@@ -223,11 +242,15 @@ int main(void)
 {
     MCUInit();
     PortsInit();
+    //delay(tdelay1, tdelay2);
     //LPTMR0Init(compare);
 
     while (1) {
     	//LPTMR0_IRQHandler;
-        printText('X');
+        printChar('B');
+        //nul_rows();
+        //delay(tdelay1, tdelay2);
+        //printChar('B');
     }
 
     return 0;
