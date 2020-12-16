@@ -111,6 +111,18 @@ void setColumn(int index){
 		PTA->PDOR &= ~A2;
 		PTA->PDOR &= ~A3;
 		break;
+	case 1:
+		PTA->PDOR |= A0;
+		PTA->PDOR &= ~A1;
+		PTA->PDOR &= ~A2;
+		PTA->PDOR &= ~A3;
+		break;
+	case 2:
+		PTA->PDOR &= ~A0;
+		PTA->PDOR |= A1;
+		PTA->PDOR &= ~A2;
+		PTA->PDOR &= ~A3;
+		break;
 	}
 }
 
@@ -121,7 +133,7 @@ void printText(int text) {
 		//PTA->PDOR |= R2;
 		//PTA->PDOR |= R1;
 		//PTA->PDOR |= R3;
-		setColumn(0);
+		setColumn(2);
 		break;
 
 	}
