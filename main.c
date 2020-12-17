@@ -284,11 +284,11 @@ void printChar(int text, int i) {
 		break;
 	case 'Y':
 	case 'y':
-		//matrix = Y;
+		matrix = Y;
 		break;
 	case 'Z':
 	case 'z':
-		//matrix = Z;
+		matrix = Z;
 		break;
 	}
 
@@ -323,12 +323,12 @@ void LPTMR0_IRQHandler(void)
 
 void LPTMR0Init(int count)
 {
-    SIM_SCGC5 |= SIM_SCGC5_LPTIMER_MASK; // Enable clock to LPTMR
+    SIM_SCGC6 |= SIM_SCGC6_PIT_MASK; // Enable clock to PIT
     LPTMR0_CSR &= ~LPTMR_CSR_TEN_MASK;   // Turn OFF LPTMR to perform setup
     LPTMR0_PSR = ( LPTMR_PSR_PRESCALE(0) // 0000 is div 2
                  | LPTMR_PSR_PBYP_MASK   // LPO feeds directly to LPT
                  | LPTMR_PSR_PCS(1)) ;   // use the choice of clock
-    LPTMR0_CMR = count;                  // Set compare value
+    PIT_LDVAL0  = 20;                  // Set compare value
     LPTMR0_CSR =(  LPTMR_CSR_TCF_MASK    // Clear any pending interrupt (now)
                  | LPTMR_CSR_TIE_MASK    // LPT interrupt enabled
                 );
@@ -345,7 +345,7 @@ int main(void)
 
     while (1) {
         //nul_rows();
-    	print_text("ABC");
+    	print_text("XNO");
         //printChar('A',0);
     }
 
