@@ -320,10 +320,10 @@ void print_text(char* text){
 
 void PIT_IRQHandler(void)
 {
-	PIT_TCTRL0 = 0;     // Disable timer
+	//PIT_TCTRL0 = 0;     // Disable timer
 	offset++;
 	PIT_TFLG0 |= PIT_TFLG_TIF_MASK;     // Clear the timer interrupt flag
-
+	NVIC_EnableIRQ(PIT0_IRQn);
 	PIT_TCTRL0 |= PIT_TCTRL_TEN_MASK | PIT_TCTRL_TIE_MASK;     // Enable timer
 	/*LPTMR0_CMR = compare / 100;
 	LPTMR0_CSR |=  LPTMR_CSR_TCF_MASK;
@@ -339,10 +339,11 @@ void PITInit(int count)
     SIM_SCGC6 |= SIM_SCGC6_PIT_MASK; // Enable clock to PIT
     PIT_LDVAL0 = 3297839; // set starting value
     PIT_MCR = PIT_MCR_FRZ_MASK;     // Enable clock for timer
-    PIT_TCTRL0 = PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK;     // Enable timer and timer interrupt
 
-    //NVIC_ICPR |= 1 << ((INT_PIT - 16) % 32); // enable PIT
-    //NVIC_ISER |= 1 << ((INT_PIT - 16) % 32);  // enable PIT
+    NVIC_EnableIRQ(PIT0_IRQn);         // enable interrupts from LPTMR0
+    PIT_TCTRL0 = PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK;     // Enable timer and timer interrupt
+    //NVIC_ICPR |= 1 << ((1 - 16) % 32); // enable PIT
+    //NVIC_ISER |= 1 << ((1 - 16) % 32);  // enable PIT
     //LPTMR0_CSR &= ~LPTMR_CSR_TEN_MASK;   // Turn OFF LPTMR to perform setup
     //LPTMR0_PSR = ( LPTMR_PSR_PRESCALE(0) // 0000 is div 2
     //             | LPTMR_PSR_PBYP_MASK   // LPO feeds directly to LPT
@@ -358,13 +359,12 @@ int main(void)
 {
     MCUInit();
     PortsInit();
-   // PITInit(compare);
+    PITInit(compare);
     //TODO INIT PIT casovac
 
     while (1) {
-        //nul_rows();
+        //nul_all();
     	print_text("PETE");
-        //printChar('A',0);
     }
 
     return 0;
