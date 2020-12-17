@@ -362,7 +362,7 @@ int main(void)
     MCUInit();
     PortsInit();
     PITInit(time);
-    char *text = "FIT";
+    char *text = "FITVUT";
 
     while (1) {
         //nul_all();
