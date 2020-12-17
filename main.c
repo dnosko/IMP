@@ -45,7 +45,7 @@ int pressed_up = 0, pressed_down = 0;
 int enable = 0;
 int count_cols = 0;
 int offset = 0;
-int time = 5799999;//4799999; // 2s
+int time = 6799999;//4799999; // 2s
 
 
 
@@ -295,19 +295,16 @@ void printChar(char text, int i) {
 }
 
 int set_letter(int len){
-	int sum = offset + (len-1)*SIZE_MATRIX;
+	int sum = len*SIZE_MATRIX;
 	int letter = 0;
-	if (offset >= 0 && offset <= 5) {
-		letter = 0;
-	}
-	else if (offset >= 6 && offset <= 11) {
-		letter = 1;
-	}
-	else if (offset >= 12 && offset <= 17) {
-		letter = 2;
-	}
 
-	return letter;
+	for (int i = 0; i < len-1;i++){
+		if (offset >= i*6 && offset < 6*(i+1)) {
+				return letter = i;
+		}
+		else
+			continue;
+	}
 }
 
 void print_text(char* text){
