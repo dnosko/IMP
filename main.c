@@ -182,7 +182,7 @@ void led_rows(int bit){
 }
 
 
-void printChar(int text, int i) {
+void printChar(char text, int i) {
 	int* matrix;
 
 	switch(text){
@@ -297,21 +297,32 @@ void printChar(int text, int i) {
 	//for (int i = 0; i < max_col; i++){
 	nul_rows();
 	column_select(i);
-	led_rows(matrix[i]);
+	led_rows(matrix[i%6]);
 
 }
 
 void print_text(char* text){
 	int actual = 0;
 	int next = 0;
+	int letter = 0;
 	for (int i = 0; i < 15;i++){
-		printChar(text[0],i);
+		actual++;
+		if (actual == 6) {
+			actual = 0;
+			letter++;
+		}
+		printChar(text[letter],i);
 	}
 }
 
 
-void LPTMR0_IRQHandler(void)
+void PIT_IRQHandler(void)
 {
+	PIT_TCTRL0 = 0;     // Disable timer
+	offset++;
+	PIT_TFLG0 |= PIT_TFLG_TIF_MASK;     // Clear the timer interrupt flag
+
+	PIT_TCTRL0 |= PIT_TCTRL_TEN_MASK | PIT_TCTRL_TIE_MASK;     // Enable timer
 	/*LPTMR0_CMR = compare / 100;
 	LPTMR0_CSR |=  LPTMR_CSR_TCF_MASK;
 	offset++;
@@ -321,31 +332,36 @@ void LPTMR0_IRQHandler(void)
 
 }
 
-void LPTMR0Init(int count)
+void PITInit(int count)
 {
     SIM_SCGC6 |= SIM_SCGC6_PIT_MASK; // Enable clock to PIT
-    LPTMR0_CSR &= ~LPTMR_CSR_TEN_MASK;   // Turn OFF LPTMR to perform setup
-    LPTMR0_PSR = ( LPTMR_PSR_PRESCALE(0) // 0000 is div 2
-                 | LPTMR_PSR_PBYP_MASK   // LPO feeds directly to LPT
-                 | LPTMR_PSR_PCS(1)) ;   // use the choice of clock
-    PIT_LDVAL0  = 20;                  // Set compare value
-    LPTMR0_CSR =(  LPTMR_CSR_TCF_MASK    // Clear any pending interrupt (now)
-                 | LPTMR_CSR_TIE_MASK    // LPT interrupt enabled
-                );
-    NVIC_EnableIRQ(LPTMR0_IRQn);         // enable interrupts from LPTMR0
-    LPTMR0_CSR |= LPTMR_CSR_TEN_MASK;    // Turn ON LPTMR0 and start counting
+    PIT_LDVAL0 = 3297839; // set starting value
+    PIT_MCR = PIT_MCR_FRZ_MASK;     // Enable clock for timer
+    PIT_TCTRL0 = PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK;     // Enable timer and timer interrupt
+
+    //NVIC_ICPR |= 1 << ((INT_PIT - 16) % 32); // enable PIT
+    //NVIC_ISER |= 1 << ((INT_PIT - 16) % 32);  // enable PIT
+    //LPTMR0_CSR &= ~LPTMR_CSR_TEN_MASK;   // Turn OFF LPTMR to perform setup
+    //LPTMR0_PSR = ( LPTMR_PSR_PRESCALE(0) // 0000 is div 2
+    //             | LPTMR_PSR_PBYP_MASK   // LPO feeds directly to LPT
+    //             | LPTMR_PSR_PCS(1)) ;   // use the choice of clock
+    //LPTMR0_CSR =(  LPTMR_CSR_TCF_MASK    // Clear any pending interrupt (now)
+    //             | LPTMR_CSR_TIE_MASK    // LPT interrupt enabled
+    //            );
+    //NVIC_EnableIRQ(LPTMR0_IRQn);         // enable interrupts from LPTMR0
+    //LPTMR0_CSR |= LPTMR_CSR_TEN_MASK;    // Turn ON LPTMR0 and start counting
 }
 
 int main(void)
 {
     MCUInit();
     PortsInit();
-    //LPTMR0Init(compare);
+   // PITInit(compare);
     //TODO INIT PIT casovac
 
     while (1) {
         //nul_rows();
-    	print_text("XNO");
+    	print_text("PET");
         //printChar('A',0);
     }
 
