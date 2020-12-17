@@ -30,6 +30,8 @@
 
 #define EN 0x10000000 //PTE28
 
+#define SIZE_MATRIX 6
+
 /*
 #define BTN_SW2 0x400     // Port E, bit 10
 #define BTN_SW3 0x1000    // Port E, bit 12
@@ -43,7 +45,7 @@ int pressed_up = 0, pressed_down = 0;
 int enable = 0;
 int count_cols = 0;
 int offset = 0;
-int time = 4799999; // 2s
+int time = 5799999;//4799999; // 2s
 
 
 
@@ -285,18 +287,15 @@ void printChar(char text, int i) {
 		break;
 	}
 
-	//int max_col = 6 - count_cols;
-
-	//for (int i = 0; i < max_col; i++){
 	nul_rows();
 	column_select(i);
-	int index = ((i+offset) % 6); //6 lebo matica pismena ma rozmer 6
+	int index = ((i+offset) % SIZE_MATRIX); //6 lebo matica pismena ma rozmer 6
 	led_rows(matrix[index]);
 
 }
 
 int set_letter(int len){
-	int sum = offset + (len-1)*6;
+	int sum = offset + (len-1)*SIZE_MATRIX;
 	int letter = 0;
 	if (offset >= 0 && offset <= 5) {
 		letter = 0;
@@ -314,8 +313,10 @@ int set_letter(int len){
 void print_text(char* text){
 	int len = strlen(text);
 	int letter;
-	//17 = len*6-1
-	if (offset > 18)
+
+	// if offset bigger than len of the word * SIZE_MATRIX -1
+	int word = len*SIZE_MATRIX-1;
+	if (offset > word)
 		offset = 0;
 
 	int actual = offset;
@@ -323,9 +324,9 @@ void print_text(char* text){
 
 	for (int i = 0; i < 16;i++){
 		actual++;
-		actual = actual % 7;
-		if (actual == 6) {
-			actual = 0;
+		actual = actual % 6;
+		if (actual == 0) {
+			//actual = 0;
 			if (letter != len-1) // nie sme na konci slova
 				letter++;
 			else // koniec slova
