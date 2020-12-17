@@ -43,7 +43,7 @@ int pressed_up = 0, pressed_down = 0;
 int enable = 0;
 int count_cols = 0;
 int offset = 0;
-int time = 3297839;
+int time = 4799999; // 2s
 
 
 
@@ -295,15 +295,41 @@ void printChar(char text, int i) {
 
 }
 
-void print_text(char* text){
-	int actual = offset;
-	int next = 0;
+int set_letter(int len){
+	int sum = offset + (len-1)*6;
 	int letter = 0;
+	if (offset >= 0 && offset <= 5) {
+		letter = 0;
+	}
+	else if (offset >= 6 && offset <= 11) {
+		letter = 1;
+	}
+	else if (offset >= 12 && offset <= 17) {
+		letter = 2;
+	}
+
+	return letter;
+}
+
+void print_text(char* text){
+	int len = strlen(text);
+	int letter;
+	//17 = len*6-1
+	if (offset > 18)
+		offset = 0;
+
+	int actual = offset;
+	letter = set_letter(len);
+
 	for (int i = 0; i < 16;i++){
 		actual++;
+		actual = actual % 7;
 		if (actual == 6) {
 			actual = 0;
-			letter++;
+			if (letter != len-1) // nie sme na konci slova
+				letter++;
+			else // koniec slova
+				letter = 0;
 		}
 		printChar(text[letter],i);
 	}
@@ -313,16 +339,9 @@ void print_text(char* text){
 void PIT0_IRQHandler(void)
 {
 	PIT_TCTRL0 = 0;     // Disable timer
-	//PIT_LDVAL0 = 3297839;
 	offset++;
 	PIT_TFLG0 = PIT_TFLG_TIF_MASK;     // Clear the timer interrupt flag
 	PIT_TCTRL0 |= PIT_TCTRL_TEN_MASK | PIT_TCTRL_TIE_MASK;     // Enable timer
-	/*LPTMR0_CMR = compare / 100;
-	LPTMR0_CSR |=  LPTMR_CSR_TCF_MASK;
-	offset++;
-	print_text("XNO");
-	if (count_cols == 6)
-		count_cols = 0;*/
 
 }
 
@@ -338,16 +357,6 @@ void PITInit(int time)
 	 NVIC_EnableIRQ(PIT0_IRQn);         // enable interrupts from LPTMR0
 	 PIT_TCTRL0 = PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK;     // Enable timer and timer interrupt
 
-
-    //LPTMR0_CSR &= ~LPTMR_CSR_TEN_MASK;   // Turn OFF LPTMR to perform setup
-    //LPTMR0_PSR = ( LPTMR_PSR_PRESCALE(0) // 0000 is div 2
-    //             | LPTMR_PSR_PBYP_MASK   // LPO feeds directly to LPT
-    //             | LPTMR_PSR_PCS(1)) ;   // use the choice of clock
-    //LPTMR0_CSR =(  LPTMR_CSR_TCF_MASK    // Clear any pending interrupt (now)
-    //             | LPTMR_CSR_TIE_MASK    // LPT interrupt enabled
-    //            );
-    //NVIC_EnableIRQ(LPTMR0_IRQn);         // enable interrupts from LPTMR0
-    //LPTMR0_CSR |= LPTMR_CSR_TEN_MASK;    // Turn ON LPTMR0 and start counting
 }
 
 int main(void)
@@ -355,10 +364,11 @@ int main(void)
     MCUInit();
     PortsInit();
     PITInit(time);
+    char *text = "FIT";
 
     while (1) {
         //nul_all();
-    	print_text("PETE");
+    	print_text(text);
     }
 
     return 0;
