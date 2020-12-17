@@ -285,6 +285,15 @@ void printChar(char text, int i) {
 	case 'z':
 		matrix = Z;
 		break;
+	case '0':
+		matrix = ZERO;
+		break;
+	case '1':
+		matrix = ONE;
+		break;
+	case '5':
+		matrix = FIVE;
+		break;
 	}
 
 	nul_rows();
@@ -362,7 +371,7 @@ int main(void)
     MCUInit();
     PortsInit();
     PITInit(time);
-    char *text = "FITVUT";
+    char *text = "XNOSKO05";
 
     while (1) {
         //nul_all();
