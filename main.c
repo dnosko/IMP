@@ -161,6 +161,7 @@ void nul_all(){
 }
 
 void led_rows(int bit){
+	nul_rows();
 
 	if (0 != (bit & 128))
 		PTA->PDOR |= R0;
@@ -297,15 +298,16 @@ void printChar(char text, int i) {
 	//for (int i = 0; i < max_col; i++){
 	nul_rows();
 	column_select(i);
-	led_rows(matrix[i%6]);
+	int index = ((i+offset) % 6); //6 lebo matica pismena ma rozmer 6
+	led_rows(matrix[index]);
 
 }
 
 void print_text(char* text){
-	int actual = 0;
+	int actual = offset;
 	int next = 0;
 	int letter = 0;
-	for (int i = 0; i < 15;i++){
+	for (int i = 0; i < 16;i++){
 		actual++;
 		if (actual == 6) {
 			actual = 0;
@@ -361,7 +363,7 @@ int main(void)
 
     while (1) {
         //nul_rows();
-    	print_text("PET");
+    	print_text("PETE");
         //printChar('A',0);
     }
 
