@@ -40,19 +40,11 @@
 
 
 int pressed_up = 0, pressed_down = 0;
-unsigned int compare = 0x200;
+int enable = 0;
 int count_cols = 0;
 int offset = 0;
+int time = 3297839;
 
-/* Variable delay loop */
-void delay(long long bound)
-{
-	int c, d;
-
-	   for (c = 1; c <= bound; c++)
-	       for (d = 1; d <= bound; d++)
-	       {}
-}
 
 
 /* Initialize the MCU - basic clock settings, turning the watchdog off */
@@ -82,8 +74,8 @@ void PortsInit(void)
     PORTA->PCR[28] |= PORT_PCR_MUX(0x01);
     PORTA->PCR[25] |= PORT_PCR_MUX(0x01);
 
-    NVIC_ClearPendingIRQ(PORTA_IRQn);      /* Vynuluj priznak prerusenia od portu A  */
-    NVIC_EnableIRQ(PORTA_IRQn);        /* Povol prerusenie od portu A          */
+    //NVIC_ClearPendingIRQ(PORTA_IRQn);      /* Vynuluj priznak prerusenia od portu A  */
+    //NVIC_EnableIRQ(PORTA_IRQn);        /* Povol prerusenie od portu A          */
 
     /* Set port E*/
     PORTE->PCR[28] = PORT_PCR_MUX(0x01);
@@ -318,12 +310,12 @@ void print_text(char* text){
 }
 
 
-void PIT_IRQHandler(void)
+void PIT0_IRQHandler(void)
 {
-	//PIT_TCTRL0 = 0;     // Disable timer
+	PIT_TCTRL0 = 0;     // Disable timer
+	//PIT_LDVAL0 = 3297839;
 	offset++;
-	PIT_TFLG0 |= PIT_TFLG_TIF_MASK;     // Clear the timer interrupt flag
-	NVIC_EnableIRQ(PIT0_IRQn);
+	PIT_TFLG0 = PIT_TFLG_TIF_MASK;     // Clear the timer interrupt flag
 	PIT_TCTRL0 |= PIT_TCTRL_TEN_MASK | PIT_TCTRL_TIE_MASK;     // Enable timer
 	/*LPTMR0_CMR = compare / 100;
 	LPTMR0_CSR |=  LPTMR_CSR_TCF_MASK;
@@ -334,16 +326,19 @@ void PIT_IRQHandler(void)
 
 }
 
-void PITInit(int count)
+void PITInit(int time)
 {
-    SIM_SCGC6 |= SIM_SCGC6_PIT_MASK; // Enable clock to PIT
-    PIT_LDVAL0 = 3297839; // set starting value
-    PIT_MCR = PIT_MCR_FRZ_MASK;     // Enable clock for timer
+	 SIM_SCGC6 |= SIM_SCGC6_PIT_MASK; // Enable clock to PIT
+	 PIT_LDVAL0 = time; // set starting value
+	 //PIT_MCR &= ~PIT_MCR_MDIS_MASK;     // Enable clock for timer
+	 PIT_MCR = 0x00;
+	 //PIT_MCR |= PIT_MCR_FRZ_MASK; stop in debug
+	 PIT_TFLG0 |= PIT_TFLG_TIF_MASK;     // Clear the timer interrupt flag
 
-    NVIC_EnableIRQ(PIT0_IRQn);         // enable interrupts from LPTMR0
-    PIT_TCTRL0 = PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK;     // Enable timer and timer interrupt
-    //NVIC_ICPR |= 1 << ((1 - 16) % 32); // enable PIT
-    //NVIC_ISER |= 1 << ((1 - 16) % 32);  // enable PIT
+	 NVIC_EnableIRQ(PIT0_IRQn);         // enable interrupts from LPTMR0
+	 PIT_TCTRL0 = PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK;     // Enable timer and timer interrupt
+
+
     //LPTMR0_CSR &= ~LPTMR_CSR_TEN_MASK;   // Turn OFF LPTMR to perform setup
     //LPTMR0_PSR = ( LPTMR_PSR_PRESCALE(0) // 0000 is div 2
     //             | LPTMR_PSR_PBYP_MASK   // LPO feeds directly to LPT
@@ -359,8 +354,7 @@ int main(void)
 {
     MCUInit();
     PortsInit();
-    PITInit(compare);
-    //TODO INIT PIT casovac
+    PITInit(time);
 
     while (1) {
         //nul_all();
