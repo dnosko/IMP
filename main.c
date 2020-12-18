@@ -31,16 +31,15 @@
 
 #define EN 0x10000000 //PTE28
 
-#define BTN_SW2 0x400     // Port E, bit 10
-#define BTN_SW3 0x1000    // Port E, bit 12
-#define BTN_SW4 0x8000000 // Port E, bit 27
-#define BTN_SW5 0x4000000 // Port E, bit 26
-#define BTN_SW6 0x800     // Port E, bit 11
+#define BTN_SW2 0x400     // PTE10
+#define BTN_SW3 0x1000    // PTE12
+#define BTN_SW4 0x8000000 // PTE27
+#define BTN_SW5 0x4000000 // PTE26
 
 #define SIZE_MATRIX 6
 
 int offset = 0;
-int time = 6719999;// 2,8s
+int time = 6719999;// 280ms
 int pressed = 0;
 
 
@@ -78,17 +77,17 @@ void PortsInit(void)
     PORTE->PCR[12] = PORT_PCR_MUX(0x01); // SW3
     PORTE->PCR[27] = PORT_PCR_MUX(0x01); // SW4
     PORTE->PCR[26] = PORT_PCR_MUX(0x01); // SW5
-    PORTE->PCR[11] = PORT_PCR_MUX(0x01); // SW6
 
 
-    /* Change corresponding PTB port pins as outputs */
-    PTA->PDDR = GPIO_PDDR_PDD(0x3F000FC0);     // LED ports as outputs
+    /* Change PTA pins as outputs */
+    PTA->PDDR = GPIO_PDDR_PDD(0x3F000FC0);     // matrix ports as outputs
     PTA->PDOR |= GPIO_PDOR_PDO(0x3F000FC0);    // turn all LEDs OFF
 
 
 }
 
 /* Conversion of requested column number into the 4-to-16 decoder control.  */
+/*http://www.fit.vutbr.cz/~simekv/IMP_projekt%20-%20had_tabule_test.zip*/
 void column_select(unsigned int col_num)
 {
 	unsigned i, result, col_sel[4];
@@ -139,7 +138,6 @@ void nul_rows(){
 }
 
 void led_rows(int bit){
-	nul_rows();
 
 	if (0 != (bit & 128))
 		PTA->PDOR |= R0;
@@ -161,7 +159,7 @@ void led_rows(int bit){
 }
 
 
-void printChar(char text, int i) {
+void print_char(char text, int i) {
 	int* matrix;
 
 	switch(text){
@@ -325,7 +323,7 @@ void print_text(char* text){
 			else // end of word
 				letter = 0;
 		}
-		printChar(text[letter],i);
+		print_char(text[letter],i);
 	}
 }
 
@@ -343,21 +341,12 @@ void PITInit(int time)
 {
 	 SIM_SCGC6 |= SIM_SCGC6_PIT_MASK; // Enable clock to PIT
 	 PIT_LDVAL0 = time; // set starting value
-	 //PIT_MCR &= ~PIT_MCR_MDIS_MASK;     // Enable clock for timer
 	 PIT_MCR = 0x00;
-	 //PIT_MCR |= PIT_MCR_FRZ_MASK; stop in debug
 	 PIT_TFLG0 |= PIT_TFLG_TIF_MASK;     // Clear the timer interrupt flag
 
-	 NVIC_EnableIRQ(PIT0_IRQn);         // enable interrupts from LPTMR0
+	 NVIC_EnableIRQ(PIT0_IRQn);         // enable interrupts from PIT0
 	 PIT_TCTRL0 = PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK;     // Enable timer and timer interrupt
 
-}
-
-int press_button(int BTN, char* text){
-	if (!(GPIOE_PDIR & BTN))
-	{
-	 return text;
-	}
 }
 
 int main(void)
