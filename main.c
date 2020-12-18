@@ -1,4 +1,5 @@
-/*
+/*********************************************
+ *
  * 		Daša Noskova - xnosko05
  *  		IMP - 2020/2021
  *
@@ -30,22 +31,17 @@
 
 #define EN 0x10000000 //PTE28
 
-#define SIZE_MATRIX 6
-
-/*
 #define BTN_SW2 0x400     // Port E, bit 10
 #define BTN_SW3 0x1000    // Port E, bit 12
 #define BTN_SW4 0x8000000 // Port E, bit 27
 #define BTN_SW5 0x4000000 // Port E, bit 26
 #define BTN_SW6 0x800     // Port E, bit 11
-*/
 
+#define SIZE_MATRIX 6
 
-int pressed_up = 0, pressed_down = 0;
-int enable = 0;
-int count_cols = 0;
 int offset = 0;
-int time = 6799999;//4799999; // 2s
+int time = 6719999;// 2,8s
+int pressed = 0;
 
 
 
@@ -76,19 +72,14 @@ void PortsInit(void)
     PORTA->PCR[28] |= PORT_PCR_MUX(0x01);
     PORTA->PCR[25] |= PORT_PCR_MUX(0x01);
 
-    //NVIC_ClearPendingIRQ(PORTA_IRQn);      /* Vynuluj priznak prerusenia od portu A  */
-    //NVIC_EnableIRQ(PORTA_IRQn);        /* Povol prerusenie od portu A          */
-
     /* Set port E*/
     PORTE->PCR[28] = PORT_PCR_MUX(0x01);
-
-    /*
     PORTE->PCR[10] = PORT_PCR_MUX(0x01); // SW2
     PORTE->PCR[12] = PORT_PCR_MUX(0x01); // SW3
     PORTE->PCR[27] = PORT_PCR_MUX(0x01); // SW4
     PORTE->PCR[26] = PORT_PCR_MUX(0x01); // SW5
     PORTE->PCR[11] = PORT_PCR_MUX(0x01); // SW6
-	*/
+
 
     /* Change corresponding PTB port pins as outputs */
     PTA->PDDR = GPIO_PDDR_PDD(0x3F000FC0);     // LED ports as outputs
@@ -145,13 +136,6 @@ void nul_rows(){
 	PTA->PDOR &= ~R5;
 	PTA->PDOR &= ~R6;
 	PTA->PDOR &= ~R7;
-}
-
-void nul_all(){
-	for(int i = 0; i < 4; i++){
-		nul_rows();
-		column_select(i);
-	}
 }
 
 void led_rows(int bit){
@@ -291,6 +275,9 @@ void printChar(char text, int i) {
 	case '1':
 		matrix = ONE;
 		break;
+	case '2':
+		matrix = TWO;
+		break;
 	case '5':
 		matrix = FIVE;
 		break;
@@ -298,7 +285,7 @@ void printChar(char text, int i) {
 
 	nul_rows();
 	column_select(i);
-	int index = ((i+offset) % SIZE_MATRIX); //6 lebo matica pismena ma rozmer 6
+	int index = ((i+offset) % SIZE_MATRIX);
 	led_rows(matrix[index]);
 
 }
@@ -333,9 +320,9 @@ void print_text(char* text){
 		actual = actual % 6;
 		if (actual == 0) {
 			//actual = 0;
-			if (letter != len-1) // nie sme na konci slova
+			if (letter != len-1) // not the end of word
 				letter++;
-			else // koniec slova
+			else // end of word
 				letter = 0;
 		}
 		printChar(text[letter],i);
@@ -366,6 +353,13 @@ void PITInit(int time)
 
 }
 
+int press_button(int BTN, char* text){
+	if (!(GPIOE_PDIR & BTN))
+	{
+	 return text;
+	}
+}
+
 int main(void)
 {
     MCUInit();
@@ -374,7 +368,14 @@ int main(void)
     char *text = "XNOSKO05";
 
     while (1) {
-        //nul_all();
+    	if (!(GPIOE_PDIR & BTN_SW5))
+    		 text = "FITVUT" ;
+    	if (!(GPIOE_PDIR & BTN_SW4))
+    		 text = "2020" ;
+    	if (!(GPIOE_PDIR & BTN_SW3))
+    		 text = "IMP" ;
+    	if (!(GPIOE_PDIR & BTN_SW2))
+    		 text = "XNOSKO05" ;
     	print_text(text);
     }
 
